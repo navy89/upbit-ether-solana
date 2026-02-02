@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>실시간 업비트 코인 가격 (최종버전)</title>
+  <style>
+    body { font-family: Arial, sans-serif; text-align: center; margin-top: 30px; }
+    h1 { color: #333; margin-bottom: 10px; }
+    .time-box { font-size: 14px; color: #666; margin: 5px auto; line-height: 1.6; }
+    .price-box { margin: 20px auto; font-size: 18px; text-align: center; line-height: 1.6; }
+    .highlight { font-weight: bold; color: #0066cc; transition: color 0.3s; }
+    .flash { color: #ff0000 !important; animation: flashAnim 0.5s ease; }
+    @keyframes flashAnim {
+      0% { color: #ff0000; }
+      50% { color: #0066cc; }
+      100% { color: #ff0000; }
+    }
+  </style>
+</head>
+<body>
+  <h1>업비트 실시간 코인 가격</h1>
+  <div class="time-box">
+    현재 시간: <span id="current-time">-</span><br>
+    최종 업데이트: <span id="last-update">-</span>
+  </div>
+
+  <div class="price-box">
+    <p>비트코인 (BTC/KRW): <span id="btc-price" class="highlight">-</span> 원 (<span id="btc-rate" class="highlight">-</span>%)</p>
+    <p>솔라나 (SOL/KRW): <span id="sol-price" class="highlight">-</span> 원 (<span id="sol-rate" class="highlight">-</span>%)</p>
+    <p>이더리움 (ETH/KRW): <span id="eth-price" class="highlight">-</span> 원 (<span id="eth-rate" class="highlight">-</span>%)</p>
+    <p>ETH 1개 - SOL 20개 차액: <span id="diff" class="highlight">-</span> 원</p>
+    <p>차액 × 20배: <span id="diff20" class="highlight">-</span> 원</p>
+    <p>거래 수수료': <span id="fee" class="highlight">-</span> 원</p>
+    <p>최근 1주일 최소 차액: <span id="min-diff" class="highlight">-</span> 원 (시간: <span id="min-time">-</span>)</p>
+    <p>최근 1주일 최대 차액: <span id="max-diff" class="highlight">-</span> 원 (시간: <span id="max-time">-</span>)</p>
+<p>최근 24시간 최소 차액 ×20: <span id="day-min-diff" class="highlight">-</span> 원 (시간: <span id="day-min-time">-</span>)</p>
+<p>최근 24시간 최대 차액 ×20: <span id="day-max-diff" class="highlight">-</span> 원 (시간: <span id="day-max-time">-</span>)</p>
+
+  </div>
+
+  <script>
+    function flashElement(id, newValue) {
+      const el = document.getElementById(id);
+      if (el.textContent !== newValue.toLocaleString()) {
+        el.textContent = newValue.toLocaleString();
+        el.classList.add("flash");
+        setTimeout(() => el.classList.remove("flash"), 500);
+        document.getElementById("last-update").textContent = formatTime(new Date());
+      }
+    }
+
+    function formatTime(date) {
+      const yyyy = date.getFullYear();
+      const mm = String(date.getMonth() + 1).padStart(2, '0');
+      const dd = String(date.getDate()).padStart(2, '0');
+      const hh = String(date.getHours()).padStart(2, '0');
+      const min = String(date.getMinutes()).padStart(2, '0');
+      const ss = String(date.getSeconds()).padStart(2, '0');
+      return `${yyyy}-${mm}-${dd} ${hh}:${min}:${ss}`;
+    }
+
+    let solPrice = null;
+    let ethPrice = null;
+    let btcPrice = null;
+    let diffHistory = [];
+
+    // 1주일치 1분봉 데이터 불러오기
+    async function loadWeekData() {
+      let endTime = new Date(); // 현재 시각
+      for (let i = 0; i < 50; i++) { // 50회 호출 → 약 7일치
+        const isoTime = endTime.toISOString();
+        const ethRes = await fetch(`https://api.upbit.com/v1/candles/minutes/1?market=KRW-ETH&count=200&to=${isoTime}`);
+        const solRes = await fetch(`https://api.upbit.com/v1/candles/minutes/1?market=KRW-SOL&count=200&to=${isoTime}`);
+        const ethData = await ethRes.json();
+        const solData = await solRes.json();
+
+        for (let j = 0; j < ethData.length; j++) {
+          const ethPrice = ethData[j].trade_price;
+          const solPrice = solData[j]?.trade_price;
+          if (solPrice) {
+            const diff20 = (ethPrice - (solPrice * 20)) * 20;
+            diffHistory.push({ value: diff20, time: new Date(ethData[j].candle_date_time_kst) });
+          }
+        }
+
+        // 다음 호출 기준 시각 갱신
+        endTime = new Date(ethData[ethData.length - 1].candle_date_time_utc);
+      }
+      updateMinMax();
+    }
+
+    function updateMinMax() {
+      if (diffHistory.length === 0) return;
+      const minDiffObj = diffHistory.reduce((min, d) => d.value < min.value ? d : min, diffHistory[0]);
+      const maxDiffObj = diffHistory.reduce((max, d) => d.value > max.value ? d : max, diffHistory[0]);
+
+      document.getElementById("min-diff").textContent = minDiffObj.value.toLocaleString();
+      document.getElementById("min-time").textContent = formatTime(minDiffObj.time);
+      document.getElementById("max-diff").textContent = maxDiffObj.value.toLocaleString();
+      document.getElementById("max-time").textContent = formatTime(maxDiffObj.time);
+    }
+
+function updateDayMinMax() {
+  if (diffHistory.length === 0) return;
+  const dayAgo = new Date(Date.now() - 24*60*60*1000); // 24시간 전
+  const dayDiffs = diffHistory.filter(d => d.time >= dayAgo);
+  if (dayDiffs.length === 0) return;
+
+  const minDiffObj = dayDiffs.reduce((min, d) => d.value < min.value ? d : min, dayDiffs[0]);
+  const maxDiffObj = dayDiffs.reduce((max, d) => d.value > max.value ? d : max, dayDiffs[0]);
+
+  document.getElementById("day-min-diff").textContent = minDiffObj.value.toLocaleString();
+  document.getElementById("day-min-time").textContent = formatTime(minDiffObj.time);
+  document.getElementById("day-max-diff").textContent = maxDiffObj.value.toLocaleString();
+  document.getElementById("day-max-time").textContent = formatTime(maxDiffObj.time);
+}
+
+ // WebSocket 연결
+const ws = new WebSocket("wss://api.upbit.com/websocket/v1");
+
+ws.onopen = () => {
+  ws.send(JSON.stringify([
+    { ticket: "test" },
+    { type: "ticker", codes: ["KRW-BTC", "KRW-SOL", "KRW-ETH"] }
+  ]));
+};
+
+ws.onmessage = async (event) => {
+  const buffer = await new Response(event.data).arrayBuffer();
+  const data = JSON.parse(new TextDecoder("utf-8").decode(buffer));
+
+  if (data.code === "KRW-BTC") {
+    btcPrice = data.trade_price;
+    flashElement("btc-price", btcPrice);
+    flashElement("btc-rate", Number((data.signed_change_rate * 100).toFixed(2)));
+  }
+  if (data.code === "KRW-SOL") {
+    solPrice = data.trade_price;
+    flashElement("sol-price", solPrice);
+    flashElement("sol-rate", Number((data.signed_change_rate * 100).toFixed(2)));
+  }
+  if (data.code === "KRW-ETH") {
+    ethPrice = data.trade_price;
+    flashElement("eth-price", ethPrice);
+    flashElement("eth-rate", Number((data.signed_change_rate * 100).toFixed(2)));
+  }
+
+  // ETH–SOL 차액 계산
+  if (solPrice && ethPrice) {
+    const diff = ethPrice - (solPrice * 20);
+    flashElement("diff", diff);
+    const diff20 = diff * 20;
+    flashElement("diff20", diff20);
+
+    // 거래 수수료 = (차액 × 20배) × 수수료율 × 2배
+    const feeRate = 0.0005;
+    const fee = diff20 * feeRate * 2;
+    flashElement("fee", fee);
+
+    // 기록 저장
+    diffHistory.push({ value: diff20, time: new Date() });
+
+    // 최근 1주일 데이터만 유지
+    const oneWeekAgo = new Date(Date.now() - 7*24*60*60*1000);
+    diffHistory = diffHistory.filter(d => d.time >= oneWeekAgo);
+
+    // 최소·최대 갱신
+    updateMinMax();     // 최근 1주일
+    updateDayMinMax();  // 최근 24시간
+  }
+};
+
+
+    // 현재 시간 표시
+    function updateTime() {
+      document.getElementById("current-time").textContent = formatTime(new Date());
+    }
+    setInterval(updateTime, 1000);
+
+    // 초기 과거 데이터 불러오기
+    loadWeekData();
+  </script>
+</body>
+</html>
