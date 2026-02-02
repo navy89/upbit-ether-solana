@@ -2,7 +2,7 @@
 <html lang="ko">
 <head>
   <meta charset="UTF-8">
-  <title>실시간 업비트 코인 가격 (최종버전)</title>
+  <title>실시간 업비트 코인 가격</title>
   <style>
     body { font-family: Arial, sans-serif; text-align: center; margin-top: 30px; }
     h1 { color: #333; margin-bottom: 10px; }
@@ -30,155 +30,163 @@
     <p>이더리움 (ETH/KRW): <span id="eth-price" class="highlight">-</span> 원 (<span id="eth-rate" class="highlight">-</span>%)</p>
     <p>ETH 1개 - SOL 20개 차액: <span id="diff" class="highlight">-</span> 원</p>
     <p>차액 × 20배: <span id="diff20" class="highlight">-</span> 원</p>
-    <p>거래 수수료': <span id="fee" class="highlight">-</span> 원</p>
-    <p>최근 1주일 최소 차액: <span id="min-diff" class="highlight">-</span> 원 (시간: <span id="min-time">-</span>)</p>
-    <p>최근 1주일 최대 차액: <span id="max-diff" class="highlight">-</span> 원 (시간: <span id="max-time">-</span>)</p>
-<p>최근 24시간 최소 차액 ×20: <span id="day-min-diff" class="highlight">-</span> 원 (시간: <span id="day-min-time">-</span>)</p>
-<p>최근 24시간 최대 차액 ×20: <span id="day-max-diff" class="highlight">-</span> 원 (시간: <span id="day-max-time">-</span>)</p>
-
+    <p>거래 수수료: <span id="fee" class="highlight">-</span> 원</p>
+    <p>최근 1주일 최소 차액 ×20: <span id="min-diff" class="highlight">-</span> 원 (시간: <span id="min-time">-</span>)</p>
+    <p>최근 1주일 최대 차액 ×20: <span id="max-diff" class="highlight">-</span> 원 (시간: <span id="max-time">-</span>)</p>
+    <p>최근 24시간 최소 차액 ×20: <span id="day-min-diff" class="highlight">-</span> 원 (시간: <span id="day-min-time">-</span>)</p>
+    <p>최근 24시간 최대 차액 ×20: <span id="day-max-diff" class="highlight">-</span> 원 (시간: <span id="day-max-time">-</span>)</p>
   </div>
 
+
   <script>
-    function flashElement(id, newValue) {
-      const el = document.getElementById(id);
-      if (el.textContent !== newValue.toLocaleString()) {
-        el.textContent = newValue.toLocaleString();
-        el.classList.add("flash");
-        setTimeout(() => el.classList.remove("flash"), 500);
-        document.getElementById("last-update").textContent = formatTime(new Date());
-      }
+  function flashElement(id, newValue) {
+    const el = document.getElementById(id);
+    if (el.textContent !== newValue.toLocaleString()) {
+      el.textContent = newValue.toLocaleString();
+      el.classList.add("flash");
+      setTimeout(() => el.classList.remove("flash"), 500);
+      document.getElementById("last-update").textContent = formatTime(new Date());
     }
+  }
 
-    function formatTime(date) {
-      const yyyy = date.getFullYear();
-      const mm = String(date.getMonth() + 1).padStart(2, '0');
-      const dd = String(date.getDate()).padStart(2, '0');
-      const hh = String(date.getHours()).padStart(2, '0');
-      const min = String(date.getMinutes()).padStart(2, '0');
-      const ss = String(date.getSeconds()).padStart(2, '0');
-      return `${yyyy}-${mm}-${dd} ${hh}:${min}:${ss}`;
-    }
+  function formatTime(date) {
+    const yyyy = date.getFullYear();
+    const mm = String(date.getMonth() + 1).padStart(2, '0');
+    const dd = String(date.getDate()).padStart(2, '0');
+    const hh = String(date.getHours()).padStart(2, '0');
+    const min = String(date.getMinutes()).padStart(2, '0');
+    const ss = String(date.getSeconds()).padStart(2, '0');
+    return `${yyyy}-${mm}-${dd} ${hh}:${min}:${ss}`;
+  }
 
-    let solPrice = null;
-    let ethPrice = null;
-    let btcPrice = null;
-    let diffHistory = [];
+  // 가격 변수 및 기록 배열
+  let solPrice = null;
+  let ethPrice = null;
+  let btcPrice = null;
+  let diffHistory = [];
+</script>
 
-    // 1주일치 1분봉 데이터 불러오기
-    async function loadWeekData() {
-      let endTime = new Date(); // 현재 시각
-      for (let i = 0; i < 50; i++) { // 50회 호출 → 약 7일치
-        const isoTime = endTime.toISOString();
-        const ethRes = await fetch(`https://api.upbit.com/v1/candles/minutes/1?market=KRW-ETH&count=200&to=${isoTime}`);
-        const solRes = await fetch(`https://api.upbit.com/v1/candles/minutes/1?market=KRW-SOL&count=200&to=${isoTime}`);
-        const ethData = await ethRes.json();
-        const solData = await solRes.json();
+ <script>
+  // 1주일치 1분봉 데이터 불러오기
+  async function loadWeekData() {
+    let endTime = new Date(); // 현재 시각 기준
+    for (let i = 0; i < 50; i++) { // 50회 호출 → 약 7일치
+      const isoTime = endTime.toISOString();
 
-        for (let j = 0; j < ethData.length; j++) {
-          const ethPrice = ethData[j].trade_price;
-          const solPrice = solData[j]?.trade_price;
-          if (solPrice) {
-            const diff20 = (ethPrice - (solPrice * 20)) * 20;
-            diffHistory.push({ value: diff20, time: new Date(ethData[j].candle_date_time_kst) });
-          }
+      const ethRes = await fetch(`https://api.upbit.com/v1/candles/minutes/1?market=KRW-ETH&count=200&to=${isoTime}`);
+      const solRes = await fetch(`https://api.upbit.com/v1/candles/minutes/1?market=KRW-SOL&count=200&to=${isoTime}`);
+      const ethData = await ethRes.json();
+      const solData = await solRes.json();
+
+      for (let j = 0; j < ethData.length; j++) {
+        const ethPrice = ethData[j].trade_price;
+        const solPrice = solData[j]?.trade_price;
+        if (solPrice) {
+          const diff20 = (ethPrice - (solPrice * 20)) * 20;
+          diffHistory.push({ value: diff20, time: new Date(ethData[j].candle_date_time_kst) });
         }
-
-        // 다음 호출 기준 시각 갱신
-        endTime = new Date(ethData[ethData.length - 1].candle_date_time_utc);
       }
-      updateMinMax();
+
+      // 다음 호출 기준 시각 갱신 (가장 오래된 캔들 기준)
+      const lastCandleTime = ethData[ethData.length - 1].candle_date_time_utc;
+      endTime = new Date(lastCandleTime);
     }
 
-    function updateMinMax() {
-      if (diffHistory.length === 0) return;
-      const minDiffObj = diffHistory.reduce((min, d) => d.value < min.value ? d : min, diffHistory[0]);
-      const maxDiffObj = diffHistory.reduce((max, d) => d.value > max.value ? d : max, diffHistory[0]);
+    updateMinMax();     // 최근 1주일 최소·최대
+    updateDayMinMax();  // 최근 24시간 최소·최대
+  }
 
-      document.getElementById("min-diff").textContent = minDiffObj.value.toLocaleString();
-      document.getElementById("min-time").textContent = formatTime(minDiffObj.time);
-      document.getElementById("max-diff").textContent = maxDiffObj.value.toLocaleString();
-      document.getElementById("max-time").textContent = formatTime(maxDiffObj.time);
+  function updateMinMax() {
+    if (diffHistory.length === 0) return;
+    const minDiffObj = diffHistory.reduce((min, d) => d.value < min.value ? d : min, diffHistory[0]);
+    const maxDiffObj = diffHistory.reduce((max, d) => d.value > max.value ? d : max, diffHistory[0]);
+
+    document.getElementById("min-diff").textContent = minDiffObj.value.toLocaleString();
+    document.getElementById("min-time").textContent = formatTime(minDiffObj.time);
+    document.getElementById("max-diff").textContent = maxDiffObj.value.toLocaleString();
+    document.getElementById("max-time").textContent = formatTime(maxDiffObj.time);
+  }
+
+  function updateDayMinMax() {
+    if (diffHistory.length === 0) return;
+    const dayAgo = new Date(Date.now() - 24*60*60*1000); // 24시간 전
+    const dayDiffs = diffHistory.filter(d => d.time >= dayAgo);
+    if (dayDiffs.length === 0) return;
+
+    const minDiffObj = dayDiffs.reduce((min, d) => d.value < min.value ? d : min, dayDiffs[0]);
+    const maxDiffObj = dayDiffs.reduce((max, d) => d.value > max.value ? d : max, dayDiffs[0]);
+
+    document.getElementById("day-min-diff").textContent = minDiffObj.value.toLocaleString();
+    document.getElementById("day-min-time").textContent = formatTime(minDiffObj.time);
+    document.getElementById("day-max-diff").textContent = maxDiffObj.value.toLocaleString();
+    document.getElementById("day-max-time").textContent = formatTime(maxDiffObj.time);
+  }
+
+  // 페이지 로드 시 과거 데이터 불러오기
+  loadWeekData();
+</script>
+
+<script>
+  // WebSocket 연결
+  const ws = new WebSocket("wss://api.upbit.com/websocket/v1");
+
+  ws.onopen = () => {
+    ws.send(JSON.stringify([
+      { ticket: "test" },
+      { type: "ticker", codes: ["KRW-BTC", "KRW-SOL", "KRW-ETH"] }
+    ]));
+  };
+
+  ws.onmessage = async (event) => {
+    const buffer = await new Response(event.data).arrayBuffer();
+    const data = JSON.parse(new TextDecoder("utf-8").decode(buffer));
+
+    if (data.code === "KRW-BTC") {
+      btcPrice = data.trade_price;
+      flashElement("btc-price", btcPrice);
+      flashElement("btc-rate", Number((data.signed_change_rate * 100).toFixed(2)));
+    }
+    if (data.code === "KRW-SOL") {
+      solPrice = data.trade_price;
+      flashElement("sol-price", solPrice);
+      flashElement("sol-rate", Number((data.signed_change_rate * 100).toFixed(2)));
+    }
+    if (data.code === "KRW-ETH") {
+      ethPrice = data.trade_price;
+      flashElement("eth-price", ethPrice);
+      flashElement("eth-rate", Number((data.signed_change_rate * 100).toFixed(2)));
     }
 
-function updateDayMinMax() {
-  if (diffHistory.length === 0) return;
-  const dayAgo = new Date(Date.now() - 24*60*60*1000); // 24시간 전
-  const dayDiffs = diffHistory.filter(d => d.time >= dayAgo);
-  if (dayDiffs.length === 0) return;
+    // ETH–SOL 차액 계산
+    if (solPrice && ethPrice) {
+      const diff = ethPrice - (solPrice * 20);
+      flashElement("diff", diff);
+      const diff20 = diff * 20;
+      flashElement("diff20", diff20);
 
-  const minDiffObj = dayDiffs.reduce((min, d) => d.value < min.value ? d : min, dayDiffs[0]);
-  const maxDiffObj = dayDiffs.reduce((max, d) => d.value > max.value ? d : max, dayDiffs[0]);
+      // 거래 수수료 = (차액 × 20배) × 수수료율 × 2배
+      const feeRate = 0.0005;
+      const fee = diff20 * feeRate * 2;
+      flashElement("fee", fee);
 
-  document.getElementById("day-min-diff").textContent = minDiffObj.value.toLocaleString();
-  document.getElementById("day-min-time").textContent = formatTime(minDiffObj.time);
-  document.getElementById("day-max-diff").textContent = maxDiffObj.value.toLocaleString();
-  document.getElementById("day-max-time").textContent = formatTime(maxDiffObj.time);
-}
+      // 기록 저장
+      diffHistory.push({ value: diff20, time: new Date() });
 
- // WebSocket 연결
-const ws = new WebSocket("wss://api.upbit.com/websocket/v1");
+      // 최근 1주일 데이터만 유지
+      const oneWeekAgo = new Date(Date.now() - 7*24*60*60*1000);
+      diffHistory = diffHistory.filter(d => d.time >= oneWeekAgo);
 
-ws.onopen = () => {
-  ws.send(JSON.stringify([
-    { ticket: "test" },
-    { type: "ticker", codes: ["KRW-BTC", "KRW-SOL", "KRW-ETH"] }
-  ]));
-};
-
-ws.onmessage = async (event) => {
-  const buffer = await new Response(event.data).arrayBuffer();
-  const data = JSON.parse(new TextDecoder("utf-8").decode(buffer));
-
-  if (data.code === "KRW-BTC") {
-    btcPrice = data.trade_price;
-    flashElement("btc-price", btcPrice);
-    flashElement("btc-rate", Number((data.signed_change_rate * 100).toFixed(2)));
-  }
-  if (data.code === "KRW-SOL") {
-    solPrice = data.trade_price;
-    flashElement("sol-price", solPrice);
-    flashElement("sol-rate", Number((data.signed_change_rate * 100).toFixed(2)));
-  }
-  if (data.code === "KRW-ETH") {
-    ethPrice = data.trade_price;
-    flashElement("eth-price", ethPrice);
-    flashElement("eth-rate", Number((data.signed_change_rate * 100).toFixed(2)));
-  }
-
-  // ETH–SOL 차액 계산
-  if (solPrice && ethPrice) {
-    const diff = ethPrice - (solPrice * 20);
-    flashElement("diff", diff);
-    const diff20 = diff * 20;
-    flashElement("diff20", diff20);
-
-    // 거래 수수료 = (차액 × 20배) × 수수료율 × 2배
-    const feeRate = 0.0005;
-    const fee = diff20 * feeRate * 2;
-    flashElement("fee", fee);
-
-    // 기록 저장
-    diffHistory.push({ value: diff20, time: new Date() });
-
-    // 최근 1주일 데이터만 유지
-    const oneWeekAgo = new Date(Date.now() - 7*24*60*60*1000);
-    diffHistory = diffHistory.filter(d => d.time >= oneWeekAgo);
-
-    // 최소·최대 갱신
-    updateMinMax();     // 최근 1주일
-    updateDayMinMax();  // 최근 24시간
-  }
-};
-
-
-    // 현재 시간 표시
-    function updateTime() {
-      document.getElementById("current-time").textContent = formatTime(new Date());
+      // 최소·최대 갱신
+      updateMinMax();     // 최근 1주일
+      updateDayMinMax();  // 최근 24시간
     }
-    setInterval(updateTime, 1000);
+  };
 
-    // 초기 과거 데이터 불러오기
-    loadWeekData();
-  </script>
+  // 현재 시간 표시 갱신
+  setInterval(() => {
+    document.getElementById("current-time").textContent = formatTime(new Date());
+  }, 1000);
+</script>
 </body>
 </html>
+
