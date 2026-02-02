@@ -37,8 +37,8 @@
     <p>최근 24시간 최대 차액 ×20: <span id="day-max-diff" class="highlight">-</span> 원 (시간: <span id="day-max-time">-</span>)</p>
   </div>
 
-
-  <script>
+<script>
+  // 화면 갱신 함수
   function flashElement(id, newValue) {
     const el = document.getElementById(id);
     if (el.textContent !== newValue.toLocaleString()) {
@@ -64,12 +64,10 @@
   let ethPrice = null;
   let btcPrice = null;
   let diffHistory = [];
-</script>
 
- <script>
-  // 1주일치 1분봉 데이터 불러오기
+  // 과거 데이터 로딩
   async function loadWeekData() {
-    let endTime = new Date(); // 현재 시각 기준
+    let endTime = new Date();
     for (let i = 0; i < 50; i++) { // 50회 호출 → 약 7일치
       const isoTime = endTime.toISOString();
 
@@ -87,13 +85,12 @@
         }
       }
 
-      // 다음 호출 기준 시각 갱신 (가장 오래된 캔들 기준)
       const lastCandleTime = ethData[ethData.length - 1].candle_date_time_utc;
       endTime = new Date(lastCandleTime);
     }
 
-    updateMinMax();     // 최근 1주일 최소·최대
-    updateDayMinMax();  // 최근 24시간 최소·최대
+    updateMinMax();
+    updateDayMinMax();
   }
 
   function updateMinMax() {
@@ -109,7 +106,7 @@
 
   function updateDayMinMax() {
     if (diffHistory.length === 0) return;
-    const dayAgo = new Date(Date.now() - 24*60*60*1000); // 24시간 전
+    const dayAgo = new Date(Date.now() - 24*60*60*1000);
     const dayDiffs = diffHistory.filter(d => d.time >= dayAgo);
     if (dayDiffs.length === 0) return;
 
@@ -122,11 +119,7 @@
     document.getElementById("day-max-time").textContent = formatTime(maxDiffObj.time);
   }
 
-  // 페이지 로드 시 과거 데이터 불러오기
-  loadWeekData();
-</script>
-
-<script>
+ 
   // WebSocket 연결
   const ws = new WebSocket("wss://api.upbit.com/websocket/v1");
 
@@ -164,7 +157,7 @@
       const diff20 = diff * 20;
       flashElement("diff20", diff20);
 
-      // 거래 수수료 = (차액 × 20배) × 수수료율 × 2배
+      // 거래 수수료 계산
       const feeRate = 0.0005;
       const fee = diff20 * feeRate * 2;
       flashElement("fee", fee);
@@ -177,8 +170,8 @@
       diffHistory = diffHistory.filter(d => d.time >= oneWeekAgo);
 
       // 최소·최대 갱신
-      updateMinMax();     // 최근 1주일
-      updateDayMinMax();  // 최근 24시간
+      updateMinMax();
+      updateDayMinMax();
     }
   };
 
@@ -187,6 +180,3 @@
     document.getElementById("current-time").textContent = formatTime(new Date());
   }, 1000);
 </script>
-</body>
-</html>
-
