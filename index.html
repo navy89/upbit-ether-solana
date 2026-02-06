@@ -9,383 +9,207 @@
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
 
         :root {
-            --bg: #0a0a0f;
-            --bg-card: #13131a;
-            --accent-green: #00ff88;
-            --accent-red: #ff3366;
-            --accent-blue: #00d4ff;
-            --accent-yellow: #ffd600;
-            --text-primary: #ffffff;
-            --text-secondary: #8a8a9f;
-            --border: #2a2a35;
+            --bg: #05070d;
+            --bg-elev: #0b1020;
+            --bg-card: #111a2f;
+            --bg-soft: #16213d;
+            --line: rgba(141, 167, 255, 0.22);
+            --line-strong: rgba(93, 220, 255, 0.55);
+            --text: #f4f7ff;
+            --text-sub: #95a2c7;
+            --buy: #25e6a3;
+            --sell: #ff6a8a;
+            --accent: #54b8ff;
+            --accent-2: #7d8bff;
+            --warn: #ffd56a;
+            --accent-blue: #54b8ff;
+            --accent-green: #25e6a3;
+            --accent-red: #ff6a8a;
+            --accent-yellow: #ffd56a;
+            --text-primary: #f4f7ff;
+            --text-secondary: #95a2c7;
+            --border: rgba(141, 167, 255, 0.22);
         }
 
         body {
             font-family: 'Inter', sans-serif;
-            background: var(--bg);
-            color: var(--text-primary);
+            color: var(--text);
+            min-height: 100vh;
+            background:
+                radial-gradient(1200px 500px at 10% -20%, rgba(84,184,255,0.18), transparent),
+                radial-gradient(900px 420px at 90% -10%, rgba(125,139,255,0.2), transparent),
+                linear-gradient(160deg, #05070d 0%, #080c17 45%, #04060d 100%);
             overflow-x: hidden;
         }
 
         .container {
-            padding: 1rem;
-            max-width: 1600px;
+            max-width: 1700px;
             margin: 0 auto;
-            height: 100vh;
+            min-height: 100vh;
+            padding: 1rem;
             display: flex;
             flex-direction: column;
+            gap: 0.8rem;
         }
 
         .header {
-            text-align: center;
-            margin-bottom: 0.75rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 0.8rem;
+            border: 1px solid var(--line);
+            border-radius: 14px;
+            padding: 0.9rem 1rem;
+            background: linear-gradient(140deg, rgba(17,26,47,0.88), rgba(11,16,32,0.92));
+            box-shadow: 0 14px 28px rgba(4, 6, 14, 0.45);
         }
 
         h1 {
-            font-size: 1.5rem;
+            font-size: 1.15rem;
+            letter-spacing: 0.02em;
             font-weight: 800;
-            background: linear-gradient(135deg, #9945ff, var(--accent-blue));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            margin-bottom: 0.25rem;
         }
 
-        .subtitle {
+        .subtitle { font-size: 0.72rem; color: var(--text-sub); margin-top: 0.2rem; }
+
+        .header-pill {
+            border: 1px solid var(--line-strong);
+            color: #caf2ff;
             font-size: 0.7rem;
-            color: var(--text-secondary);
+            font-weight: 700;
+            padding: 0.35rem 0.6rem;
+            border-radius: 999px;
+            background: rgba(84, 184, 255, 0.15);
+            white-space: nowrap;
         }
 
         .main-grid {
             display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 0.75rem;
+            grid-template-columns: repeat(12, 1fr);
+            gap: 0.7rem;
             flex: 1;
-            overflow: hidden;
+            min-height: 0;
         }
 
         .card {
-            background: var(--bg-card);
-            border: 1px solid var(--border);
-            border-radius: 8px;
+            background: linear-gradient(160deg, rgba(17,26,47,0.92), rgba(11,16,32,0.95));
+            border: 1px solid var(--line);
+            border-radius: 12px;
             padding: 0.75rem;
             display: flex;
             flex-direction: column;
             overflow: hidden;
+            box-shadow: inset 0 1px 0 rgba(255,255,255,0.04), 0 10px 20px rgba(2,4,10,0.4);
         }
+
+        .main-grid > .card:nth-child(1) { grid-column: span 4; }
+        .main-grid > .card:nth-child(2) { grid-column: span 2; }
+        .main-grid > .card:nth-child(3) { grid-column: span 3; }
+        .main-grid > .card:nth-child(4) { grid-column: span 3; }
+        .main-grid > .card:nth-child(5) { grid-column: span 2; }
+        .main-grid > .card:nth-child(6) { grid-column: span 2; }
+        .main-grid > .card:nth-child(7) { grid-column: span 2; }
+        .chart-card { grid-column: 1 / -1; }
 
         .card-title {
-            font-size: 0.65rem;
-            color: var(--text-secondary);
+            font-size: 0.64rem;
+            color: #b3c1e7;
             text-transform: uppercase;
-            letter-spacing: 0.05em;
-            margin-bottom: 0.5rem;
-            font-weight: 600;
+            letter-spacing: 0.12em;
+            margin-bottom: 0.55rem;
+            font-weight: 700;
         }
 
-        .coin-grid {
-            display: grid;
-            gap: 0.5rem;
-            flex: 1;
-        }
-
+        .coin-grid { display: grid; gap: 0.45rem; flex: 1; }
         .coin-item {
-            background: rgba(255, 255, 255, 0.03);
-            padding: 0.5rem;
-            border-radius: 6px;
+            background: linear-gradient(145deg, rgba(23,33,58,0.9), rgba(16,23,42,0.85));
+            padding: 0.52rem;
+            border-radius: 8px;
             display: grid;
             grid-template-columns: auto 1fr auto;
             gap: 0.5rem;
             align-items: center;
+            border: 1px solid rgba(132, 155, 224, 0.2);
         }
+        .coin-name { font-size: 0.68rem; font-weight: 700; color: #c6d1f2; }
+        .coin-price { font-size: 0.86rem; font-weight: 800; text-align: right; }
 
-        .coin-name {
-            font-size: 0.7rem;
-            font-weight: 700;
-            color: var(--text-secondary);
-        }
+        .coin-price.flash-up, .diff-value.flash-up { animation: flashUp 0.4s ease; }
+        .coin-price.flash-down, .diff-value.flash-down { animation: flashDown 0.4s ease; }
+        @keyframes flashUp { 50% { color: var(--buy); text-shadow: 0 0 10px rgba(37,230,163,.55);} }
+        @keyframes flashDown { 50% { color: var(--sell); text-shadow: 0 0 10px rgba(255,106,138,.5);} }
 
-        .coin-price {
-            font-size: 0.85rem;
-            font-weight: 700;
-            text-align: right;
-            transition: all 0.15s ease;
-        }
+        .coin-change { font-size: 0.65rem; font-weight: 700; padding: 0.16rem 0.35rem; border-radius: 4px; }
+        .change-positive { background: rgba(37,230,163,0.14); color: var(--buy); }
+        .change-negative { background: rgba(255,106,138,0.15); color: var(--sell); }
 
-        .coin-price.flash-up {
-            animation: flashUp 0.4s ease;
-        }
+        .input-card { border-color: rgba(37,230,163,0.45); background: linear-gradient(150deg, rgba(12,32,35,.95), rgba(14,24,35,.95)); justify-content: center; gap: .5rem; }
+        .eth-input { background: rgba(255,255,255,.06); border: 1px solid var(--line); border-radius: 7px; padding: .5rem; color: var(--text); text-align:center; font-size:1.1rem; font-weight:700; }
+        .eth-input:focus { outline:none; border-color: var(--buy); }
+        .input-label { font-size:.68rem; color: var(--text-sub); }
 
-        .coin-price.flash-down {
-            animation: flashDown 0.4s ease;
+        .fee-grid { display:grid; gap:.4rem; }
+        .fee-item, .stat-row {
+            background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(143,166,232,.16);
+            border-radius: 6px;
+            padding: .42rem;
         }
+        .fee-item { display:flex; justify-content:space-between; align-items:center; gap:.5rem; }
+        .fee-label { font-size:.63rem; color: var(--text-sub); }
+        .fee-value { font-size:.74rem; font-weight:700; }
+        .stats-card { gap:.3rem; }
+        .stat-period { font-size:.55rem; color:#8cc7ff; text-transform:uppercase; letter-spacing:.08em; font-weight:700; margin-top:.25rem; }
+        .stat-value { font-size:.69rem; font-weight:700; }
+        .stat-time { font-size:.52rem; color: var(--text-sub); }
 
-        @keyframes flashUp {
-            0% { color: var(--text-primary); transform: scale(1); }
-            50% { 
-                color: var(--accent-red); 
-                transform: scale(1.1);
-                text-shadow: 0 0 10px var(--accent-red);
-            }
-            100% { color: var(--text-primary); transform: scale(1); }
-        }
+        .diff-value { font-size:1.5rem; font-weight:800; }
+        .diff-label { font-size:.63rem; color: var(--text-sub); }
 
-        @keyframes flashDown {
-            0% { color: var(--text-primary); transform: scale(1); }
-            50% { 
-                color: var(--accent-blue); 
-                transform: scale(1.1);
-                text-shadow: 0 0 10px var(--accent-blue);
-            }
-            100% { color: var(--text-primary); transform: scale(1); }
-        }
-
-        .coin-change {
-            font-size: 0.65rem;
-            font-weight: 600;
-            padding: 0.15rem 0.35rem;
-            border-radius: 3px;
-            white-space: nowrap;
-        }
-
-        .change-positive {
-            background: rgba(0, 255, 136, 0.15);
-            color: var(--accent-green);
-        }
-
-        .change-negative {
-            background: rgba(255, 51, 102, 0.15);
-            color: var(--accent-red);
-        }
-
-        .difference-card {
-            background: linear-gradient(135deg, #1a1a25 0%, #25252f 100%);
-            border: 2px solid #9945ff;
-            text-align: center;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-        }
-
-        .diff-value {
-            font-size: 1.8rem;
-            font-weight: 800;
-            margin-bottom: 0.25rem;
-            transition: all 0.15s ease;
-        }
-
-        .diff-value.flash-up {
-            animation: flashUp 0.4s ease;
-        }
-
-        .diff-value.flash-down {
-            animation: flashDown 0.4s ease;
-        }
-
-        .diff-label {
-            font-size: 0.65rem;
-            color: var(--text-secondary);
-        }
-
-        .fee-grid {
-            display: grid;
-            gap: 0.4rem;
-        }
-
-        .fee-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 0.4rem;
-            background: rgba(255, 255, 255, 0.03);
-            border-radius: 4px;
-        }
-
-        .fee-label {
-            font-size: 0.65rem;
-            color: var(--text-secondary);
-        }
-
-        .fee-value {
-            font-size: 0.75rem;
-            font-weight: 700;
-        }
-
-        .fee-total {
-            background: rgba(255, 214, 0, 0.1);
-            border-left: 2px solid var(--accent-yellow);
-        }
-
-        .stats-card {
-            display: flex;
-            flex-direction: column;
-            gap: 0.5rem;
-        }
-
-        .stat-period {
-            font-size: 0.65rem;
-            color: #9945ff;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-            margin-bottom: 0.25rem;
-        }
-
-        .stat-row {
-            display: grid;
-            grid-template-columns: 1fr;
-            gap: 0.3rem;
-            padding: 0.4rem;
-            background: rgba(255, 255, 255, 0.03);
-            border-radius: 4px;
-        }
-
-        .stat-value {
-            font-size: 0.85rem;
-            font-weight: 700;
-        }
-
-        .stat-time {
-            font-size: 0.55rem;
-            color: var(--text-secondary);
-        }
-
-        .chart-card {
-            grid-column: 1 / -1;
-            min-height: 0;
-        }
-
-        .chart-info {
-            display: flex;
-            gap: 1.5rem;
-            padding: 0.5rem 0;
-            margin-bottom: 0.5rem;
-            font-size: 0.75rem;
-            border-bottom: 1px solid var(--border);
-            min-height: 28px;
-        }
-
-        .chart-info-item {
-            display: flex;
-            gap: 0.5rem;
-        }
-
-        .chart-info-label {
-            color: var(--text-secondary);
-        }
-
-        .chart-info-value {
-            font-weight: 700;
-            color: var(--text-primary);
-        }
-
-        .chart-info-placeholder {
-            color: var(--text-secondary);
-            font-size: 0.7rem;
-        }
-
-        .chart-container {
-            position: relative;
-            flex: 1;
-            min-height: 0;
-            touch-action: none;
-        }
-
-        .chart-svg {
-            width: 100%;
-            height: 100%;
-            min-height: 200px;
-            touch-action: none;
-        }
-
-        .crosshair-line {
-            pointer-events: none;
-        }
+        .chart-info { display:flex; gap:1rem; padding:0.4rem 0; margin-bottom:0.4rem; font-size:.72rem; border-bottom:1px solid var(--line); min-height:30px; align-items:center; }
+        .chart-info-label, .chart-info-placeholder { color: var(--text-sub); }
+        .chart-info-value { font-weight:700; }
+        .chart-container { position:relative; flex:1; min-height:0; }
+        .chart-svg { width:100%; height:100%; display:block; }
+        .crosshair-line { pointer-events:none; }
 
         .status {
             position: fixed;
-            bottom: 0.5rem;
+            bottom: 0.55rem;
             left: 50%;
             transform: translateX(-50%);
             display: flex;
-            gap: 0.75rem;
-            align-items: center;
-            padding: 0.4rem 0.75rem;
-            background: var(--bg-card);
-            border: 1px solid var(--border);
-            border-radius: 20px;
-            font-size: 0.6rem;
-            color: var(--text-secondary);
-            z-index: 1000;
+            align-items:center;
+            gap: .65rem;
+            background: rgba(11,16,32,0.94);
+            border: 1px solid var(--line);
+            border-radius: 999px;
+            padding: .45rem .8rem;
+            font-size: .6rem;
+            color: var(--text-sub);
+            backdrop-filter: blur(10px);
         }
+        .status-dot { width:6px;height:6px;border-radius:50%;background:var(--buy);animation:pulse 1.8s infinite; }
+        @keyframes pulse { 50% { opacity: .35; } }
 
-        .status-dot {
-            width: 6px;
-            height: 6px;
-            border-radius: 50%;
-            background: var(--accent-green);
-            animation: pulse 2s ease-in-out infinite;
-        }
-
-        @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.3; }
-        }
-
-        .loading {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            height: 100vh;
-            font-size: 0.9rem;
-            color: var(--text-secondary);
-        }
+        .loading { display:flex; align-items:center; justify-content:center; min-height:100vh; color:var(--text-sub); }
 
         @media (max-width: 1200px) {
-            .main-grid {
-                grid-template-columns: repeat(2, 1fr);
-            }
+            .main-grid { grid-template-columns: repeat(2, 1fr); }
+            .main-grid > .card { grid-column: span 1 !important; }
+            .chart-card { grid-column: 1 / -1 !important; }
         }
 
         @media (max-width: 768px) {
-            .container {
-                padding: 0.5rem;
-                height: auto;
-                min-height: 100vh;
-            }
-            
-            h1 {
-                font-size: 1.2rem;
-            }
-            
-            .main-grid {
-                grid-template-columns: 1fr;
-                gap: 0.5rem;
-            }
-            
-            .card {
-                padding: 0.6rem;
-            }
-            
-            .diff-value {
-                font-size: 1.4rem;
-            }
-
-            .chart-card {
-                margin: 0 -0.5rem;
-                width: calc(100% + 1rem);
-                border-radius: 0;
-            }
-
-            .chart-svg {
-                min-height: 250px;
-            }
+            .container { padding: .55rem; }
+            .header { flex-direction: column; align-items: flex-start; }
+            .main-grid { grid-template-columns: 1fr; }
+            .card { padding: .62rem; }
+            .chart-card { margin: 0 -0.55rem; border-radius: 0; width: calc(100% + 1.1rem); }
+            .chart-svg { min-height: 250px; }
         }
     </style>
 </head>
@@ -875,8 +699,11 @@
             return (
                 <div className="container">
                     <div className="header">
-                        <h1>솔라나-이더리움 가격 추적기</h1>
-                        <div className="subtitle">ETH 20개 vs SOL 400개 + BTC</div>
+                        <div>
+                            <h1>UPBIT 스프레드 트레이딩 콘솔</h1>
+                            <div className="subtitle">SOL 400 매도 → ETH 매수 → ETH 매도 → SOL 400 재매수 후 KRW 잔여 수익 추적</div>
+                        </div>
+                        <div className="header-pill">LIVE ARB DESK</div>
                     </div>
 
                     <div className="main-grid">
