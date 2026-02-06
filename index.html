@@ -30,6 +30,25 @@
     .container { max-width: 1320px; margin: 0 auto; padding: 24px; }
     h1 { margin: 0; font-size: 28px; }
     .subtitle { margin-top: 8px; color: var(--muted); line-height: 1.4; }
+    .toolbar {
+      margin-top: 14px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: center;
+    }
+    .btn {
+      border: 1px solid var(--line);
+      color: var(--text);
+      background: rgba(56, 189, 248, 0.15);
+      border-radius: 10px;
+      padding: 8px 12px;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+    .btn:hover { background: rgba(56, 189, 248, 0.25); }
+    .toolbar-note { font-size: 12px; color: var(--muted); }
     .grid { display: grid; gap: 16px; }
     .top-grid { grid-template-columns: 1.3fr 1fr; margin-top: 18px; }
     .four-grid { grid-template-columns: repeat(4, 1fr); margin-top: 16px; }
@@ -125,6 +144,7 @@
     function App() {
       const regimeScore = 58;
       const state = scoreToState(regimeScore);
+      const generatedAt = new Date().toISOString();
 
       const layers = [
         { title: '가격·파생 지표', score: 62, summary: '단기 추세 우상향 + 변동성 확대 가능성' },
@@ -139,12 +159,60 @@
         { period: '2024-09 ~ 2024-10', vol: '중간', best: '캐리 + 리밸런싱', dd: '-4.9%' },
       ];
 
+      const downloadBlob = (filename, content, mimeType) => {
+        const blob = new Blob([content], { type: mimeType });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = filename;
+        link.click();
+        URL.revokeObjectURL(url);
+      };
+
+      const handleDownloadJSON = () => {
+        const payload = {
+          dashboard: 'bitcoin-quant-regime-dashboard',
+          generatedAt,
+          regimeScore,
+          regimeState: state.label,
+          layers,
+          indicators: indicatorRows,
+          similarRegime,
+          notes: 'Conceptual example for regime-based investment decision support.',
+        };
+
+        downloadBlob(
+          `btc-regime-dashboard-${generatedAt.slice(0, 10)}.json`,
+          JSON.stringify(payload, null, 2),
+          'application/json;charset=utf-8'
+        );
+      };
+
+      const handleDownloadCSV = () => {
+        const header = ['지표', '값', '계층', '해석'];
+        const rows = indicatorRows.map((item) => [item.name, item.value, item.layer, item.signal]);
+        const csv = [header, ...rows]
+          .map((line) => line.map((value) => `"${String(value).replaceAll('"', '""')}"`).join(','))
+          .join('\n');
+
+        downloadBlob(
+          `btc-indicators-${generatedAt.slice(0, 10)}.csv`,
+          `\uFEFF${csv}`,
+          'text/csv;charset=utf-8'
+        );
+      };
+
       return (
         <div className="container">
           <h1>비트코인 퀀트 투자 대시보드 (Regime Framework)</h1>
           <p className="subtitle">
             단일 매수/매도 신호가 아니라, 시장 상태(Regime)를 확률적으로 해석하여 전략 선택과 포지션 사이징을 지원하는 통합 분석 대시보드
           </p>
+          <div className="toolbar">
+            <button className="btn" onClick={handleDownloadJSON}>JSON 다운로드</button>
+            <button className="btn" onClick={handleDownloadCSV}>지표 CSV 다운로드</button>
+            <span className="toolbar-note">오프라인 분석용으로 현재 화면 데이터를 내려받을 수 있습니다.</span>
+          </div>
 
           <div className="grid top-grid">
             <section className="card">
